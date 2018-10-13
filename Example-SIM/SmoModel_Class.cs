@@ -16,41 +16,40 @@ namespace Model_Lab
 
         #region Параметры модель
 
-        bool isFinish;
+        public bool isFinish;
 
-        List<int> inputPages = new List<int>();
+        public List<Page> inputPagesFifo = new List<Page>();
+
+        public int activePageAmount;
+
+        public int tickNumber;
+
+        public int pageFaultsAmountFifo;
 
         #endregion
 
         #region Дополнительные структуры
 
         /* Process */
-        public class Process : QueueRecord
+        public class Page : QueueRecord
         {
-            /* Number of process*/
+            /* Page number */
             public int number;
-            /* Required number of ticks for execution */
-            public int requiredAmount;
-            /* Priority */
-            public int priority;
-            /* Readiness time */
-            public int readinessTime;
+            /* Page call time */
+            public int callTime;
+            /* True -  if page has been changed*/
+            public bool isPageChange;
 
-            public Process(int _number, int _readinessTime, int _requiredAmount, int _priority)
+            public Page(int _number, int _callTime, bool _isPageChange)
             {
                 number = _number;
-                requiredAmount = _requiredAmount;
-                priority = _priority;
-                readinessTime = _readinessTime;
+                callTime = _callTime;
+                isPageChange = _isPageChange;
             }
         }
 
         /* Queue for FIFO */
-        SimpleModelList<Process> QFIFO;
-
-        #endregion
-
-        #region Cборщики статистики
+        SimpleModelList<Page> QFIFO;
 
         #endregion
 
@@ -58,7 +57,7 @@ namespace Model_Lab
 
         public SmoModel(Model parent, string name) : base(parent, name)
         {
-            QFIFO = InitModelObject<SimpleModelList<Process>>();
+            QFIFO = InitModelObject<SimpleModelList<Page>>();
         }
 
         #endregion

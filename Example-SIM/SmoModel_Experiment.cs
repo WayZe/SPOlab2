@@ -34,38 +34,50 @@ namespace Model_Lab
         {
             #region Параметры модели
 
-            #endregion
-
-            #region Установка параметров законов распределения
-
-            //(generator.BPN as GeneratedBaseRandomStream).Seed = 1;
-            //generator.A = 0;
-            //generator.B = 2;
+            isFinish = false;
+            
+            activePageAmount = 3;
+            
+            tickNumber = 0;
+            
+            pageFaultsAmountFifo = 0;
 
             #endregion
         }
 
         public override void StartModelling(int variantCount, int runCount)
         {
-
-
             //Печать заголовка строки состояния модели
             TraceModelHeader();
 
+            ReadFile();
+
             #region Планирование начальных событий      
+
+            var ev = new FIFO();
+            PlanEvent(ev, 0.0);
 
             #endregion
         }
 
         public void ReadFile()
         {
-            StreamReader streamReader = new StreamReader(@"D:\Langs\C#\SPOlab2\input.txt");
+            StreamReader streamReader;
 
-            String[] tmp = streamReader.ReadLine().Split();
-
-            for (int i = 0; i < tmp.Length; i++)
+            if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
-                inputPages.Add(Convert.ToInt32(tmp[i]));
+                streamReader = new StreamReader(@"D:\Langs\C#\SPOlab2\input.txt");
+
+            }
+            else
+            {
+                streamReader = new StreamReader(@"/Users/andreymakarov/Downloads/SPOlab2/input.txt");
+            }
+
+            while (!streamReader.EndOfStream)
+            {
+                String[] tmp = streamReader.ReadLine().Split(' ');
+                inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
             }
         }
 
@@ -77,6 +89,8 @@ namespace Model_Lab
             Tracer.TraceOut("============Статистические результаты моделирования===========");
             Tracer.TraceOut("==============================================================");
             Tracer.AnyTrace("");
+
+            Tracer.AnyTrace("FIFO page faults = " + pageFaultsAmountFifo);
         }
 
         //Печать заголовка
