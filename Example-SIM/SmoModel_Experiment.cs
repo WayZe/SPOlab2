@@ -37,10 +37,12 @@ namespace Model_Lab
             isFinish = false;
             
             activePageAmount = 3;
-            
-            tickNumber = 0;
+
+            tickNumber = 1;
             
             pageFaultsAmountFifo = 0;
+
+            pageFaultsAmountWS = 0;
 
             #endregion
         }
@@ -78,6 +80,7 @@ namespace Model_Lab
             {
                 String[] tmp = streamReader.ReadLine().Split(' ');
                 inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
+                inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
             }
         }
 
@@ -91,6 +94,7 @@ namespace Model_Lab
             Tracer.AnyTrace("");
 
             Tracer.AnyTrace("FIFO page faults = " + pageFaultsAmountFifo);
+            Tracer.AnyTrace("WorkingSet page faults = " + pageFaultsAmountWS);
         }
 
         //Печать заголовка

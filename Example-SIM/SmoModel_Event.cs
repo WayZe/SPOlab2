@@ -50,7 +50,10 @@ namespace Model_Lab
                 }
                 else
                 {
-                    Model.isFinish = true;
+                    Model.tickNumber = 1;
+                    //Model.isFinish = true;
+                    var ev = new WorkingSet();
+                    Model.PlanEvent(ev, 1.0);
                 }
             }
         }
@@ -60,6 +63,99 @@ namespace Model_Lab
         {       
             protected override void HandleEvent(ModelEventArgs args)
             {
+                if (Model.workPagesWS.Count > 0)
+                {
+                    for (int i = 0; i < Model.workPagesWS.Count; i++)
+                    {
+                        if (Model.tickNumber % 2 == 1)
+                        {
+                            if (Model.workPagesWS[i].callBit == true)
+                            {
+                                Model.workPagesWS[i].callBit = false;
+                                Model.workPagesWS[i].callTime = Model.tickNumber - 1;
+                            }
+                        }
+                        //Model.workPagesWS[i].callTime = Model.tickNumber - 1;
+                        Model.workPagesWS[i].timeDifference = Model.tickNumber - Model.workPagesWS[i].callTime;
+                    }
+                }
+
+                if (Model.inputPagesWS[0].callTime == Model.tickNumber)
+                {
+                    bool isProcessWithCurrentNumber = false;
+                    int processNumber = -1;
+                    for (int i = 0; i < Model.workPagesWS.Count; i++)
+                    {
+                        if (Model.workPagesWS[i].number == Model.inputPagesWS[0].number) 
+                        {
+                            isProcessWithCurrentNumber = true;
+                            processNumber = i;
+                            break;
+                        }
+                    }
+
+                    if (isProcessWithCurrentNumber)
+                    {
+                        if (Model.workPagesWS[processNumber].callBit == true && Model.tickNumber % 2 == 1)
+                        {
+                            Model.workPagesWS[processNumber].callTime = Model.tickNumber - 1;
+                            Model.workPagesWS[processNumber].timeDifference = Model.tickNumber - Model.workPagesWS[processNumber].callTime;
+                        }
+                        else
+                        {
+                            Model.workPagesWS[processNumber].callBit = true;
+                        }
+                    }
+                    else
+                    {
+                        if (Model.workPagesWS.Count < Model.activePageAmount)
+                        {
+                            Model.workPagesWS.Add(new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.tickNumber));
+                        }
+                        else
+                        {
+                            int worstPageNumber = 0;
+                            for (int i = 1; i < Model.workPagesWS.Count; i++)
+                            {
+                                if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
+                                    <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                                {
+                                    worstPageNumber = i;
+                                }
+                            }
+
+                            Model.Tracer.AnyTrace(worstPageNumber);
+                            Model.workPagesWS[worstPageNumber] = new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.tickNumber);
+                            Model.pageFaultsAmountWS++;
+                        }
+                    }
+
+                    Model.inputPagesWS.RemoveAt(0);
+
+                    String outString = Model.tickNumber.ToString() + "\t";
+
+                    for (int i = 0; i < Model.workPagesWS.Count; i++)
+                    {
+                        outString += Model.workPagesWS[i].number.ToString() + " " +
+                                          (Convert.ToInt32(Model.workPagesWS[i].callBit)).ToString() + " " +
+                                          Model.workPagesWS[i].callTime.ToString() + " " +
+                                          Model.workPagesWS[i].timeDifference.ToString() + "  ";
+                    }
+
+                    Model.Tracer.AnyTrace(outString);
+                }
+
+                Model.tickNumber++;
+
+                if (Model.inputPagesWS.Count != 0)
+                {
+                    var ev = new WorkingSet();
+                    Model.PlanEvent(ev, 1.0);
+                }
+                else
+                {
+                    Model.isFinish = true;
+                }
             }
         }
     }

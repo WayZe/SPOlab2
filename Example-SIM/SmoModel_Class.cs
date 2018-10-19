@@ -13,12 +13,15 @@ namespace Model_Lab
 
     public partial class SmoModel : Model
     {
-
         #region Параметры модель
 
         public bool isFinish;
 
         public List<Page> inputPagesFifo = new List<Page>();
+
+        public List<Page> inputPagesWS = new List<Page>();
+
+        public List<WorkPage> workPagesWS = new List<WorkPage>();
 
         public int activePageAmount;
 
@@ -26,11 +29,13 @@ namespace Model_Lab
 
         public int pageFaultsAmountFifo;
 
+        public int pageFaultsAmountWS;
+
         #endregion
 
         #region Дополнительные структуры
 
-        /* Process */
+        /* Page */
         public class Page : QueueRecord
         {
             /* Page number */
@@ -45,6 +50,27 @@ namespace Model_Lab
                 number = _number;
                 callTime = _callTime;
                 isPageChange = _isPageChange;
+            }
+        }
+
+        /* Queued page */
+        public class WorkPage : QueueRecord
+        {
+            /* Page number */
+            public int number;
+            /* Call bit */
+            public bool callBit;
+            /* Call time */
+            public int callTime;
+            /* Time difference */
+            public int timeDifference;
+
+            public WorkPage(int _number, bool _callBit, int _callTime, int _timeDifference)
+            {
+                number = _number;
+                callBit = _callBit;
+                callTime = _callTime;
+                timeDifference = _timeDifference;
             }
         }
 
