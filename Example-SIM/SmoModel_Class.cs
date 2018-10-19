@@ -25,7 +25,7 @@ namespace Model_Lab
 
         public int activePageAmount;
 
-        public int tickNumber;
+        public int cycleNumber;
 
         public int pageFaultsAmountFifo;
 
@@ -53,7 +53,7 @@ namespace Model_Lab
             }
         }
 
-        /* Queued page */
+        /* Page IN RAM */
         public class WorkPage : QueueRecord
         {
             /* Page number */

@@ -34,14 +34,19 @@ namespace Model_Lab
         {
             #region Параметры модели
 
+            /* If true then program end */
             isFinish = false;
-            
+
+            /* Pages in RAM */
             activePageAmount = 3;
 
-            tickNumber = 1;
-            
+            /* Number of current cycle */
+            cycleNumber = 1;
+
+            /* Amount of page faults for FIFO */
             pageFaultsAmountFifo = 0;
 
+            /* Amount of page faults for Working Set */
             pageFaultsAmountWS = 0;
 
             #endregion
@@ -52,16 +57,19 @@ namespace Model_Lab
             //Печать заголовка строки состояния модели
             TraceModelHeader();
 
+            /* Reading input file */
             ReadFile();
 
             #region Планирование начальных событий      
 
+            /* Planning startd event */
             var ev = new FIFO();
             PlanEvent(ev, 0.0);
 
             #endregion
         }
 
+        /* Reading input file */
         public void ReadFile()
         {
             StreamReader streamReader;

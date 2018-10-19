@@ -10,12 +10,34 @@ namespace Model_Lab
 {
     public partial class SmoModel : Model
     {
-        // Event class: processor tick
-        public class FIFO : TimeModelEvent<SmoModel>
-        {       
+        /* Intreface declaring general functions for FIFO and Working Set */
+        public interface IPage
+        {
+            /* Adding page in RAM */
+            void AddPage();
+
+            /* Printing tracing */
+            void PrintTracing();
+
+            /* Moving on to the next cycle */
+            void GoToNextCycle();
+        }
+
+        // Event class: FIFO
+        public class FIFO : TimeModelEvent<SmoModel>, IPage
+        {
             protected override void HandleEvent(ModelEventArgs args)
             {
-                if (Model.inputPagesFifo[0].callTime == Model.tickNumber)
+                AddPage();
+
+                Model.cycleNumber++;
+
+                GoToNextCycle();
+            }
+
+            public void AddPage()
+            {
+                if (Model.inputPagesFifo[0].callTime == Model.cycleNumber)
                 {
                     Model.QFIFO.Add(new Page(Model.inputPagesFifo[0].number, Model.inputPagesFifo[0].callTime, Model.inputPagesFifo[0].isPageChange));
 
@@ -31,18 +53,24 @@ namespace Model_Lab
                         Model.Tracer.AnyTrace("Something went wrong");
                     }
 
-                    String outString = Model.tickNumber.ToString() + "\t";
+                    PrintTracing();
+                }
+            }
 
-                    for (int i = Model.QFIFO.Count - 1; i >= 0; i--)
-                    {
-                        outString += " " + Model.QFIFO[i].number.ToString();
-                    }
+            public void PrintTracing()
+            {
+                String outString = Model.cycleNumber.ToString() + "\t";
 
-                    Model.Tracer.AnyTrace(outString);
+                for (int i = Model.QFIFO.Count - 1; i >= 0; i--)
+                {
+                    outString += " " + Model.QFIFO[i].number.ToString();
                 }
 
-                Model.tickNumber++;
+                Model.Tracer.AnyTrace(outString);
+            }
 
+            public void GoToNextCycle()
+            {
                 if (Model.inputPagesFifo.Count != 0)
                 {
                     var ev = new FIFO();
@@ -50,103 +78,141 @@ namespace Model_Lab
                 }
                 else
                 {
-                    Model.tickNumber = 1;
-                    //Model.isFinish = true;
+                    Model.cycleNumber = 1;
                     var ev = new WorkingSet();
                     Model.PlanEvent(ev, 1.0);
                 }
             }
         }
 
-        // Event class: processor tick
-        public class WorkingSet : TimeModelEvent<SmoModel>
-        {       
+        // Event class: Working Set
+        public class WorkingSet : TimeModelEvent<SmoModel>, IPage
+        {
             protected override void HandleEvent(ModelEventArgs args)
+            {
+                ExecutePagePreProcessing();
+
+                AddPage();
+
+                Model.cycleNumber++;
+
+                GoToNextCycle();
+            }
+
+            /* Updating pages that are in RAM */
+            private void ExecutePagePreProcessing()
             {
                 if (Model.workPagesWS.Count > 0)
                 {
                     for (int i = 0; i < Model.workPagesWS.Count; i++)
                     {
-                        if (Model.tickNumber % 2 == 1)
+                        if (Model.cycleNumber % 2 == 1)
                         {
                             if (Model.workPagesWS[i].callBit == true)
                             {
                                 Model.workPagesWS[i].callBit = false;
-                                Model.workPagesWS[i].callTime = Model.tickNumber - 1;
+                                Model.workPagesWS[i].callTime = Model.cycleNumber - 1;
                             }
                         }
                         //Model.workPagesWS[i].callTime = Model.tickNumber - 1;
-                        Model.workPagesWS[i].timeDifference = Model.tickNumber - Model.workPagesWS[i].callTime;
+                        Model.workPagesWS[i].timeDifference = Model.cycleNumber - Model.workPagesWS[i].callTime;
+                    }
+                }
+            }
+
+            /* Searching page with current number in RAM */
+            private bool SearchPageWithCurrentNumber(out int processNumber)
+            {
+                bool isProcessWithCurrentNumber = false;
+                processNumber = -1;
+
+                for (int i = 0; i < Model.workPagesWS.Count; i++)
+                {
+                    if (Model.workPagesWS[i].number == Model.inputPagesWS[0].number)
+                    {
+                        isProcessWithCurrentNumber = true;
+                        processNumber = i;
+                        break;
                     }
                 }
 
-                if (Model.inputPagesWS[0].callTime == Model.tickNumber)
-                {
-                    bool isProcessWithCurrentNumber = false;
-                    int processNumber = -1;
-                    for (int i = 0; i < Model.workPagesWS.Count; i++)
-                    {
-                        if (Model.workPagesWS[i].number == Model.inputPagesWS[0].number) 
-                        {
-                            isProcessWithCurrentNumber = true;
-                            processNumber = i;
-                            break;
-                        }
-                    }
+                return isProcessWithCurrentNumber;
+            }
 
-                    if (isProcessWithCurrentNumber)
+            public void AddPage()
+            {
+                if (Model.inputPagesWS[0].callTime == Model.cycleNumber)
+                {
+                    if (SearchPageWithCurrentNumber(out int processNumber))
                     {
-                        if (Model.workPagesWS[processNumber].callBit == true && Model.tickNumber % 2 == 1)
-                        {
-                            Model.workPagesWS[processNumber].callTime = Model.tickNumber - 1;
-                            Model.workPagesWS[processNumber].timeDifference = Model.tickNumber - Model.workPagesWS[processNumber].callTime;
-                        }
-                        else
-                        {
-                            Model.workPagesWS[processNumber].callBit = true;
-                        }
+                        ProcessRamPage(processNumber);
                     }
                     else
                     {
-                        if (Model.workPagesWS.Count < Model.activePageAmount)
-                        {
-                            Model.workPagesWS.Add(new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.tickNumber));
-                        }
-                        else
-                        {
-                            int worstPageNumber = 0;
-                            for (int i = 1; i < Model.workPagesWS.Count; i++)
-                            {
-                                if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
-                                    <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
-                                {
-                                    worstPageNumber = i;
-                                }
-                            }
-
-                            Model.Tracer.AnyTrace(worstPageNumber);
-                            Model.workPagesWS[worstPageNumber] = new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.tickNumber);
-                            Model.pageFaultsAmountWS++;
-                        }
+                        ProcessNotRamPage();
                     }
+
+                    PrintTracing();
 
                     Model.inputPagesWS.RemoveAt(0);
+                }
+            }
 
-                    String outString = Model.tickNumber.ToString() + "\t";
+            /* Processing addition of page that is in RAM */
+            private void ProcessRamPage(int processNumber)
+            {
+                if (Model.workPagesWS[processNumber].callBit == true && Model.cycleNumber % 2 == 1)
+                {
+                    Model.workPagesWS[processNumber].callTime = Model.cycleNumber - 1;
+                    Model.workPagesWS[processNumber].timeDifference = Model.cycleNumber - Model.workPagesWS[processNumber].callTime;
+                }
+                else
+                {
+                    Model.workPagesWS[processNumber].callBit = true;
+                }
+            }
 
-                    for (int i = 0; i < Model.workPagesWS.Count; i++)
+            /* Processing addition of page that is not in RAM */
+            private void ProcessNotRamPage()
+            {
+                if (Model.workPagesWS.Count < Model.activePageAmount)
+                {
+                    Model.workPagesWS.Add(new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.cycleNumber));
+                }
+                else
+                {
+                    int worstPageNumber = 0;
+                    for (int i = 1; i < Model.workPagesWS.Count; i++)
                     {
-                        outString += Model.workPagesWS[i].number.ToString() + " " +
-                                          (Convert.ToInt32(Model.workPagesWS[i].callBit)).ToString() + " " +
-                                          Model.workPagesWS[i].callTime.ToString() + " " +
-                                          Model.workPagesWS[i].timeDifference.ToString() + "  ";
+                        if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
+                            <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                        {
+                            worstPageNumber = i;
+                        }
                     }
 
-                    Model.Tracer.AnyTrace(outString);
+                    Model.workPagesWS[worstPageNumber] = new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.cycleNumber);
+                    Model.pageFaultsAmountWS++;
+                }
+            }
+
+            public void PrintTracing()
+            {
+                String outString = Model.inputPagesWS[0].number.ToString() + "\t" + Model.cycleNumber.ToString() + "\t";
+
+                for (int i = 0; i < Model.workPagesWS.Count; i++)
+                {
+                    outString += Model.workPagesWS[i].number.ToString() + " " +
+                                      (Convert.ToInt32(Model.workPagesWS[i].callBit)).ToString() + " " +
+                                      Model.workPagesWS[i].callTime.ToString() + " " +
+                                      Model.workPagesWS[i].timeDifference.ToString() + "  ";
                 }
 
-                Model.tickNumber++;
+                Model.Tracer.AnyTrace(outString);
+            }
 
+            public void GoToNextCycle()
+            {
                 if (Model.inputPagesWS.Count != 0)
                 {
                     var ev = new WorkingSet();
