@@ -25,6 +25,8 @@ namespace Model_Lab
 
         public int activePageAmount;
 
+        public int inputPageAmount;
+
         public int cycleNumber;
 
         public int pageFaultsAmountFifo;

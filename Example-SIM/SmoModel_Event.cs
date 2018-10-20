@@ -10,7 +10,7 @@ namespace Model_Lab
 {
     public partial class SmoModel : Model
     {
-        /* Intreface declaring general functions for FIFO and Working Set */
+        /* General functions for FIFO and Working Set */
         public interface IPage
         {
             /* Adding page in RAM */

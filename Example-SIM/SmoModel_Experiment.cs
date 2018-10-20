@@ -54,11 +54,14 @@ namespace Model_Lab
 
         public override void StartModelling(int variantCount, int runCount)
         {
-            //Печать заголовка строки состояния модели
-            TraceModelHeader();
-
             /* Reading input file */
             ReadFile();
+
+            /* Reading start parametrs from screen */
+            ReadFromScreen();
+
+            //Печать заголовка строки состояния модели
+            TraceModelHeader();
 
             #region Планирование начальных событий      
 
@@ -69,26 +72,75 @@ namespace Model_Lab
             #endregion
         }
 
-        /* Reading input file */
-        public void ReadFile()
+        private void GenerateInputFile()
         {
-            StreamReader streamReader;
-
-            if (Environment.OSVersion.Platform.ToString() == "Win32NT")
+            try
             {
-                streamReader = new StreamReader(@"D:\Langs\C#\SPOlab2\input.txt");
+                StreamWriter streamWriter;
 
+                if (Environment.OSVersion.Platform.ToString() == "Win32NT")
+                {
+                    streamWriter = new StreamWriter(@"input.txt");
+
+                }
+                else
+                {
+                    streamWriter = new StreamWriter(@"input.txt");
+                }
+
+                Random rnd = new Random();
+                int i = 1;
+                while (inputPagesFifo.Count == inputPageAmount)
+                {
+                    streamWriter.WriteLine(rnd.Next(0, 5).ToString() + " " + i.ToString() + " " + 0.ToString());
+                    i++;
+                }
             }
-            else
+            catch
             {
-                streamReader = new StreamReader(@"/Users/andreymakarov/Downloads/SPOlab2/input.txt");
+                Console.WriteLine("Не найден файл input.txt. \r\nСоздайте этот файл или положите его рядом с .exe");
+                Console.ReadKey();
+                Environment.Exit(-1);
             }
+        }
 
-            while (!streamReader.EndOfStream)
+        private void ReadFromScreen()
+        {
+            while (inputPageAmount != 3)
             {
-                String[] tmp = streamReader.ReadLine().Split(' ');
-                inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
-                inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
+                Console.Write("Введите цифру 3: ");
+                inputPageAmount = Convert.ToInt32(Console.ReadLine());
+            }
+        }
+
+        private void ReadFile()
+        {
+            try
+            {
+                StreamReader streamReader;
+
+                if (Environment.OSVersion.Platform.ToString() == "Win32NT")
+                {
+                    streamReader = new StreamReader(@"input.txt");
+
+                }
+                else
+                {
+                    streamReader = new StreamReader(@"/Users/andreymakarov/Downloads/SPOlab2/input.txt");
+                }
+
+                while (!streamReader.EndOfStream)
+                {
+                    String[] tmp = streamReader.ReadLine().Split(' ');
+                    inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
+                    inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Не найден файл input.txt. \r\nСоздайте этот файл или положите его рядом с .exe");
+                Console.ReadKey();
+                Environment.Exit(-1);
             }
         }
 
@@ -112,9 +164,9 @@ namespace Model_Lab
             Tracer.TraceOut("======================= Запущена модель ======================");
             Tracer.TraceOut("==============================================================");
             //вывод заголовка трассировки
-            Tracer.AnyTrace("");
-            Tracer.AnyTrace("Параметры модели:");
-            Tracer.AnyTrace("");
+            //Tracer.AnyTrace("");
+            //Tracer.AnyTrace("Параметры модели:");
+            //Tracer.AnyTrace("");
         }
 
         //Печать строки состояния
