@@ -43,6 +43,8 @@ namespace Model_Lab
             /* Number of current cycle */
             cycleNumber = 1;
 
+            inputPageAmount = -1;
+
             /* Amount of page faults for FIFO */
             pageFaultsAmountFifo = 0;
 
@@ -54,17 +56,27 @@ namespace Model_Lab
 
         public override void StartModelling(int variantCount, int runCount)
         {
-            /* Reading input file */
-            ReadFile();
-
             /* Reading start parametrs from screen */
-            ReadFromScreen();
+            if (Convert.ToBoolean(ReadFromScreen()))
+            {
+                GenerateInputFile();
+                /* Reading input file */
+                ReadFile(@"inputg.txt");
+            }
+            else
+            {
+                /* Reading input file */
+                ReadFile(@"input.txt");
+            }
 
             //Печать заголовка строки состояния модели
             TraceModelHeader();
 
             #region Планирование начальных событий      
-
+            
+            Tracer.AnyTrace("");
+            Tracer.AnyTrace("FIFO");
+            Tracer.AnyTrace("");
             /* Planning startd event */
             var ev = new FIFO();
             PlanEvent(ev, 0.0);
@@ -72,48 +84,63 @@ namespace Model_Lab
             #endregion
         }
 
+        /// <summary>
+        /// Generating file with the given parameters
+        /// </summary>
         private void GenerateInputFile()
         {
-            try
+            StreamWriter streamWriter;
+
+            if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
-                StreamWriter streamWriter;
+                streamWriter = new StreamWriter(@"inputg.txt");
 
-                if (Environment.OSVersion.Platform.ToString() == "Win32NT")
-                {
-                    streamWriter = new StreamWriter(@"input.txt");
-
-                }
-                else
-                {
-                    streamWriter = new StreamWriter(@"input.txt");
-                }
-
-                Random rnd = new Random();
-                int i = 1;
-                while (inputPagesFifo.Count == inputPageAmount)
-                {
-                    streamWriter.WriteLine(rnd.Next(0, 5).ToString() + " " + i.ToString() + " " + 0.ToString());
-                    i++;
-                }
             }
-            catch
+            else
             {
-                Console.WriteLine("Не найден файл input.txt. \r\nСоздайте этот файл или положите его рядом с .exe");
-                Console.ReadKey();
-                Environment.Exit(-1);
+                streamWriter = new StreamWriter(@"inputg.txt");
             }
+
+            Random rnd = new Random();
+            int i = 1;
+            while (i <= inputPageAmount)
+            { 
+                streamWriter.WriteLine(rnd.Next(0, 5).ToString() + " " + i.ToString() + " " + 0.ToString());
+                i++;
+            }
+            streamWriter.Flush();
+
+            streamWriter.Close();
         }
 
-        private void ReadFromScreen()
+        /// <summary>
+        /// Reading amount of input pages from screen 
+        /// </summary>
+        /// <returns> Amount of input pages </returns>
+        private int ReadFromScreen()
         {
-            while (inputPageAmount != 3)
+
+            while (inputPageAmount < 0)
             {
-                Console.Write("Введите цифру 3: ");
-                inputPageAmount = Convert.ToInt32(Console.ReadLine());
+                try
+                {
+                    Console.Write("Введите количество входных страниц \r\n(если желаете оставить базовые настройки введите 0): ");
+                    inputPageAmount = Convert.ToInt32(Console.ReadLine());
+                }
+                catch
+                {
+
+                }
             }
+            
+            return inputPageAmount;
         }
 
-        private void ReadFile()
+        /// <summary>
+        /// Reading information about pages from file
+        /// </summary>
+        /// <param name="path"> Path to file from which is reading </param>
+        private void ReadFile(String path)
         {
             try
             {
@@ -121,7 +148,7 @@ namespace Model_Lab
 
                 if (Environment.OSVersion.Platform.ToString() == "Win32NT")
                 {
-                    streamReader = new StreamReader(@"input.txt");
+                    streamReader = new StreamReader(path);
 
                 }
                 else
@@ -138,7 +165,7 @@ namespace Model_Lab
             }
             catch
             {
-                Console.WriteLine("Не найден файл input.txt. \r\nСоздайте этот файл или положите его рядом с .exe");
+                Console.WriteLine("\r\nНе найден файл input.txt. \r\nСоздайте этот файл и положите его рядом с исполняемым. \r\nИли выберите не базовый вариант.\r\n");
                 Console.ReadKey();
                 Environment.Exit(-1);
             }
@@ -155,6 +182,8 @@ namespace Model_Lab
 
             Tracer.AnyTrace("FIFO page faults = " + pageFaultsAmountFifo);
             Tracer.AnyTrace("WorkingSet page faults = " + pageFaultsAmountWS);
+
+            Console.ReadKey();
         }
 
         //Печать заголовка

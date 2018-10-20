@@ -16,8 +16,11 @@ namespace Model_Lab
             /* Adding page in RAM */
             void AddPage();
 
-            /* Printing tracing */
-            void PrintTracing();
+            /// <summary>
+            /// Printing tracing. If [isPageFault] == true, add " P" in end of string
+            /// </summary>
+            /// <param name="isPageFault"> True if there is page fault </param>
+            void PrintTracing(bool isPageFault);
 
             /* Moving on to the next cycle */
             void GoToNextCycle();
@@ -37,33 +40,40 @@ namespace Model_Lab
 
             public void AddPage()
             {
+                bool isPageFault = false;
                 if (Model.inputPagesFifo[0].callTime == Model.cycleNumber)
                 {
                     Model.QFIFO.Add(new Page(Model.inputPagesFifo[0].number, Model.inputPagesFifo[0].callTime, Model.inputPagesFifo[0].isPageChange));
-
-                    Model.inputPagesFifo.RemoveAt(0);
 
                     if (Model.QFIFO.Count == Model.activePageAmount + 1)
                     {
                         Model.pageFaultsAmountFifo++;
                         Model.QFIFO.RemoveAt(0);
+                        isPageFault = true;
                     }
                     else if (Model.QFIFO.Count > Model.activePageAmount + 1)
                     {
                         Model.Tracer.AnyTrace("Something went wrong");
                     }
 
-                    PrintTracing();
+                    PrintTracing(isPageFault);
+
+                    Model.inputPagesFifo.RemoveAt(0);
                 }
             }
 
-            public void PrintTracing()
+            public void PrintTracing(bool isPageFault)
             {
-                String outString = Model.cycleNumber.ToString() + "\t";
+                String outString = Model.inputPagesFifo[0].number.ToString() + "\t" + Model.cycleNumber.ToString() + "\t";
 
                 for (int i = Model.QFIFO.Count - 1; i >= 0; i--)
                 {
-                    outString += " " + Model.QFIFO[i].number.ToString();
+                    outString += Model.QFIFO[i].number.ToString() + " ";
+                }
+
+                if (isPageFault)
+                {
+                    outString += " P";
                 }
 
                 Model.Tracer.AnyTrace(outString);
@@ -78,6 +88,9 @@ namespace Model_Lab
                 }
                 else
                 {
+                    Model.Tracer.AnyTrace("");
+                    Model.Tracer.AnyTrace("Working Set");
+                    Model.Tracer.AnyTrace("");
                     Model.cycleNumber = 1;
                     var ev = new WorkingSet();
                     Model.PlanEvent(ev, 1.0);
@@ -114,45 +127,49 @@ namespace Model_Lab
                                 Model.workPagesWS[i].callTime = Model.cycleNumber - 1;
                             }
                         }
-                        //Model.workPagesWS[i].callTime = Model.tickNumber - 1;
                         Model.workPagesWS[i].timeDifference = Model.cycleNumber - Model.workPagesWS[i].callTime;
                     }
                 }
             }
 
-            /* Searching page with current number in RAM */
-            private bool SearchPageWithCurrentNumber(out int processNumber)
+            /// <summary>
+            /// Searching page with current number in RAM 
+            /// </summary>
+            /// <param name="pageNumber">  </param>
+            /// <returns> True if there is page with input page number </returns>
+            private bool SearchPageWithCurrentNumber(out int pageNumber)
             {
-                bool isProcessWithCurrentNumber = false;
-                processNumber = -1;
+                bool isPageWithCurrentNumber = false;
+                pageNumber = -1;
 
                 for (int i = 0; i < Model.workPagesWS.Count; i++)
                 {
                     if (Model.workPagesWS[i].number == Model.inputPagesWS[0].number)
                     {
-                        isProcessWithCurrentNumber = true;
-                        processNumber = i;
+                        isPageWithCurrentNumber = true;
+                        pageNumber = i;
                         break;
                     }
                 }
 
-                return isProcessWithCurrentNumber;
+                return isPageWithCurrentNumber;
             }
 
             public void AddPage()
             {
+                bool isPageFault = false;
                 if (Model.inputPagesWS[0].callTime == Model.cycleNumber)
                 {
-                    if (SearchPageWithCurrentNumber(out int processNumber))
+                    if (SearchPageWithCurrentNumber(out int pageNumber))
                     {
-                        ProcessRamPage(processNumber);
+                        ProcessRamPage(pageNumber);
                     }
                     else
                     {
-                        ProcessNotRamPage();
+                        ProcessNotRamPage(out isPageFault);
                     }
 
-                    PrintTracing();
+                    PrintTracing(isPageFault);
 
                     Model.inputPagesWS.RemoveAt(0);
                 }
@@ -173,8 +190,9 @@ namespace Model_Lab
             }
 
             /* Processing addition of page that is not in RAM */
-            private void ProcessNotRamPage()
+            private void ProcessNotRamPage(out bool isPageFault)
             {
+                isPageFault = false;
                 if (Model.workPagesWS.Count < Model.activePageAmount)
                 {
                     Model.workPagesWS.Add(new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.cycleNumber));
@@ -193,10 +211,11 @@ namespace Model_Lab
 
                     Model.workPagesWS[worstPageNumber] = new WorkPage(Model.inputPagesWS[0].number, true, 0, Model.cycleNumber);
                     Model.pageFaultsAmountWS++;
+                    isPageFault = true;
                 }
             }
 
-            public void PrintTracing()
+            public void PrintTracing(bool isPageFault)
             {
                 String outString = Model.inputPagesWS[0].number.ToString() + "\t" + Model.cycleNumber.ToString() + "\t";
 
@@ -207,6 +226,12 @@ namespace Model_Lab
                                       Model.workPagesWS[i].callTime.ToString() + " " +
                                       Model.workPagesWS[i].timeDifference.ToString() + "  ";
                 }
+
+                if (isPageFault)
+                {
+                    outString += " P";
+                }
+
 
                 Model.Tracer.AnyTrace(outString);
             }
