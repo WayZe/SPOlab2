@@ -37,6 +37,8 @@ namespace Model_Lab
 
         public int resetCallBitTime;
 
+        public int uniquePageAmount;
+
         #endregion
 
         #region Дополнительные структуры

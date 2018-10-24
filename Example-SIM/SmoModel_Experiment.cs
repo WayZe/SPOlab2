@@ -38,7 +38,7 @@ namespace Model_Lab
             isFinish = false;
 
             /* Pages in RAM */
-            activePageAmount = 3;
+            activePageAmount = -1;
 
             /* Number of current cycle */
             cycleNumber = 1;
@@ -52,10 +52,13 @@ namespace Model_Lab
             pageFaultsAmountWS = 0;
 
             /* If time diffrence less than [maxTimeDifference] then page is in working set */
-            maxTimeDifference = 3;
+            maxTimeDifference = -1;
 
             /* Time when call bit will be reset */
-            resetCallBitTime = 2;
+            resetCallBitTime = -1;
+
+            /* Amount of unique input page */
+            uniquePageAmount = -1;
 
             #endregion
         }
@@ -111,7 +114,7 @@ namespace Model_Lab
             int i = 1;
             while (i <= inputPageAmount)
             { 
-                streamWriter.WriteLine(rnd.Next(0, 5).ToString() + " " + i.ToString() + " " + 0.ToString());
+                streamWriter.WriteLine(rnd.Next(0, uniquePageAmount).ToString() + " " + i.ToString() + " " + 0.ToString());
                 i++;
             }
             streamWriter.Flush();
@@ -127,47 +130,42 @@ namespace Model_Lab
         {
             if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
-                while (inputPageAmount < 0)
-                {
-                    try
-                    {
-                        Console.Write("Введите количество обращений \r\n(если желаете оставить базовые настройки введите 0): ");
-                        inputPageAmount = Convert.ToInt32(Console.ReadLine());
-                    }
-                    catch
-                    {
-                    }
-                }
+                inputPageAmount = ReadValueFromScreen("Введите количество обращений \r\n(если желаете оставить базовые настройки введите 0): ");
 
                 if (inputPageAmount != 0)
                 {
-                    while (activePageAmount <= 0)
-                    {
-                        try
-                        {
-                            Console.Write("Введите количество страниц в памяти ");
-                            activePageAmount = Convert.ToInt32(Console.ReadLine());
-                        }
-                        catch
-                        {
-                        }
-                    }
+                    activePageAmount = ReadValueFromScreen("Введите количество страниц в памяти ");
 
-                    while (resetCallBitTime <= 0)
-                    {
-                        try
-                        {
-                            Console.Write("Введите время сброса бита обращения ");
-                            resetCallBitTime = Convert.ToInt32(Console.ReadLine());
-                        }
-                        catch
-                        {
-                        }
-                    }
+                    resetCallBitTime = ReadValueFromScreen("Введите время сброса бита обращения ");
+
+                    maxTimeDifference = ReadValueFromScreen("Введите время хранения в рабочем множестве ");
+
+                    uniquePageAmount = ReadValueFromScreen("Введите количество уникальных страниц ");
                 }
+
                 return inputPageAmount;
             }
+
             return 0;
+        }
+
+        private int ReadValueFromScreen(String message)
+        {
+            int value = -1;
+
+            while (value < 0)
+            {
+                try
+                {
+                    Console.Write(message);
+                    value = Convert.ToInt32(Console.ReadLine());
+                }
+                catch
+                {
+                }
+            }
+
+            return value;
         }
 
         /// <summary>
