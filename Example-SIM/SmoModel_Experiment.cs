@@ -142,6 +142,14 @@ namespace Model_Lab
 
                     uniquePageAmount = ReadValueFromScreen("Введите количество уникальных страниц ");
                 }
+                else
+                {
+                    /* Base settings */
+                    activePageAmount = 3;
+                    resetCallBitTime = 2;
+                    maxTimeDifference = 3;
+                    uniquePageAmount = 5;
+                }
 
                 return inputPageAmount;
             }
