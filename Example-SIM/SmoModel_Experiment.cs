@@ -54,6 +54,9 @@ namespace Model_Lab
             /* If time diffrence less than [maxTimeDifference] then page is in working set */
             maxTimeDifference = 3;
 
+            /* Time when call bit will be reset */
+            resetCallBitTime = 2;
+
             #endregion
         }
 
@@ -128,12 +131,38 @@ namespace Model_Lab
                 {
                     try
                     {
-                        Console.Write("Введите количество входных страниц \r\n(если желаете оставить базовые настройки введите 0): ");
+                        Console.Write("Введите количество обращений \r\n(если желаете оставить базовые настройки введите 0): ");
                         inputPageAmount = Convert.ToInt32(Console.ReadLine());
                     }
                     catch
                     {
+                    }
+                }
 
+                if (inputPageAmount != 0)
+                {
+                    while (activePageAmount <= 0)
+                    {
+                        try
+                        {
+                            Console.Write("Введите количество страниц в памяти ");
+                            activePageAmount = Convert.ToInt32(Console.ReadLine());
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    while (resetCallBitTime <= 0)
+                    {
+                        try
+                        {
+                            Console.Write("Введите время сброса бита обращения ");
+                            resetCallBitTime = Convert.ToInt32(Console.ReadLine());
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
                 return inputPageAmount;
@@ -167,6 +196,8 @@ namespace Model_Lab
                     inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
                     inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
                 }
+
+                inputPageAmount = inputPagesFifo.Count;
             }
             catch
             {
@@ -187,6 +218,8 @@ namespace Model_Lab
 
             Tracer.AnyTrace("FIFO page faults = " + pageFaultsAmountFifo);
             Tracer.AnyTrace("WorkingSet page faults = " + pageFaultsAmountWS);
+
+            Console.WriteLine("\n*Трассировка также сохранена в файл trace.txt");
 
             Console.ReadKey();
         }

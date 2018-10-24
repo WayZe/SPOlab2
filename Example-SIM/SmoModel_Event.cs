@@ -91,6 +91,12 @@ namespace Model_Lab
                     Model.Tracer.AnyTrace("");
                     Model.Tracer.AnyTrace("Working Set");
                     Model.Tracer.AnyTrace("");
+                    Model.Tracer.AnyTrace("Время хранения страницы в рабочем множестве " + Model.maxTimeDifference);
+                    Model.Tracer.AnyTrace("Количество страниц в памяти " + Model.activePageAmount);
+                    Model.Tracer.AnyTrace("Время сброса бита обращения " + Model.resetCallBitTime);
+                    Model.Tracer.AnyTrace("Количество обращений " + Model.inputPageAmount);
+                    Model.Tracer.AnyTrace("");
+
                     Model.cycleNumber = 1;
                     var ev = new WorkingSet();
                     Model.PlanEvent(ev, 1.0);
@@ -119,7 +125,7 @@ namespace Model_Lab
                 {
                     for (int i = 0; i < Model.workPagesWS.Count; i++)
                     {
-                        if (Model.cycleNumber % 2 == 1)
+                        if (Model.cycleNumber % (Model.resetCallBitTime) == 1)
                         {
                             if (Model.workPagesWS[i].callBit == true)
                             {
@@ -176,16 +182,16 @@ namespace Model_Lab
             }
 
             /* Processing addition of page that is in RAM */
-            private void ProcessRamPage(int processNumber)
+            private void ProcessRamPage(int pageNumber)
             {
-                if (Model.workPagesWS[processNumber].callBit == true && Model.cycleNumber % 2 == 1)
+                if (Model.workPagesWS[pageNumber].callBit == true && Model.cycleNumber % Model.resetCallBitTime == 1)
                 {
-                    Model.workPagesWS[processNumber].callTime = Model.cycleNumber - 1;
-                    Model.workPagesWS[processNumber].timeDifference = Model.cycleNumber - Model.workPagesWS[processNumber].callTime;
+                    Model.workPagesWS[pageNumber].callTime = Model.cycleNumber - 1;
+                    Model.workPagesWS[pageNumber].timeDifference = Model.cycleNumber - Model.workPagesWS[pageNumber].callTime;
                 }
                 else
                 {
-                    Model.workPagesWS[processNumber].callBit = true;
+                    Model.workPagesWS[pageNumber].callBit = true;
                 }
             }
 
@@ -204,7 +210,7 @@ namespace Model_Lab
                     /* Searching first element with [timeDufference] less than [maxTimeDiffernce] */
                     for (int i = k; i < Model.workPagesWS.Count; i++)
                     {
-                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
+                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference && !Model.workPagesWS[i].callBit)
                         {
                             worstPageNumber = i;
                             k = ++i;
@@ -223,10 +229,6 @@ namespace Model_Lab
                                 worstPageNumber = i;
                                 break;
                             }
-                        }
-                        else
-                        {
-                            // TODO
                         }
                     }
 

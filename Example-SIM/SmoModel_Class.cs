@@ -35,6 +35,8 @@ namespace Model_Lab
 
         public int maxTimeDifference;
 
+        public int resetCallBitTime;
+
         #endregion
 
         #region Дополнительные структуры
