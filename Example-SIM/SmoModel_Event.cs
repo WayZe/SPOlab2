@@ -200,12 +200,33 @@ namespace Model_Lab
                 else
                 {
                     int worstPageNumber = 0;
-                    for (int i = 1; i < Model.workPagesWS.Count; i++)
+                    int k = 0;
+                    /* Searching first element with [timeDufference] less than [maxTimeDiffernce] */
+                    for (int i = k; i < Model.workPagesWS.Count; i++)
                     {
-                        if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
-                            <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
                         {
                             worstPageNumber = i;
+                            k = ++i;
+                            break;
+                        }
+                    }
+
+
+                    for (int i = k; i < Model.workPagesWS.Count; i++)
+                    {
+                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
+                        {
+                            if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
+                                <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                            {
+                                worstPageNumber = i;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // TODO
                         }
                     }
 

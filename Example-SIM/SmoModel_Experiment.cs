@@ -51,6 +51,9 @@ namespace Model_Lab
             /* Amount of page faults for Working Set */
             pageFaultsAmountWS = 0;
 
+            /* If time diffrence less than [maxTimeDifference] then page is in working set */
+            maxTimeDifference = 3;
+
             #endregion
         }
 
@@ -119,21 +122,23 @@ namespace Model_Lab
         /// <returns> Amount of input pages </returns>
         private int ReadFromScreen()
         {
-
-            while (inputPageAmount < 0)
+            if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
-                try
+                while (inputPageAmount < 0)
                 {
-                    Console.Write("Введите количество входных страниц \r\n(если желаете оставить базовые настройки введите 0): ");
-                    inputPageAmount = Convert.ToInt32(Console.ReadLine());
-                }
-                catch
-                {
+                    try
+                    {
+                        Console.Write("Введите количество входных страниц \r\n(если желаете оставить базовые настройки введите 0): ");
+                        inputPageAmount = Convert.ToInt32(Console.ReadLine());
+                    }
+                    catch
+                    {
 
+                    }
                 }
+                return inputPageAmount;
             }
-            
-            return inputPageAmount;
+            return 0;
         }
 
         /// <summary>

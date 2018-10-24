@@ -33,6 +33,8 @@ namespace Model_Lab
 
         public int pageFaultsAmountWS;
 
+        public int maxTimeDifference;
+
         #endregion
 
         #region Дополнительные структуры
