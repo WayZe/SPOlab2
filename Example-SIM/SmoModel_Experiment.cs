@@ -147,7 +147,7 @@ namespace Model_Lab
                     /* Base settings */
                     activePageAmount = 3;
                     resetCallBitTime = 2;
-                    maxTimeDifference = 3;
+                    maxTimeDifference = 5;
                     uniquePageAmount = 5;
                 }
 

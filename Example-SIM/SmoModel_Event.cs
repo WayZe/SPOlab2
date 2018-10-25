@@ -224,7 +224,7 @@ namespace Model_Lab
                         if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
                         {
                             if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
-                                <= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                                >= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
                             {
                                 worstPageNumber = i;
                                 break;
