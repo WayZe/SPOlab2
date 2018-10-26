@@ -74,6 +74,7 @@ namespace Model_Lab
             }
             else
             {
+                Tracer.AnyTrace("321");
                 /* Reading input file */
                 ReadFile(@"input.txt");
             }
@@ -128,6 +129,7 @@ namespace Model_Lab
         /// <returns> Amount of input pages </returns>
         private int ReadFromScreen()
         {
+            Tracer.AnyTrace(Environment.OSVersion.Platform.ToString());
             if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
                 inputPageAmount = ReadValueFromScreen("Введите количество обращений \r\n(если желаете оставить базовые настройки введите 0): ");
@@ -152,6 +154,16 @@ namespace Model_Lab
                 }
 
                 return inputPageAmount;
+            }
+            else
+            {
+                /* Base settings */
+                inputPageAmount = 0;
+                activePageAmount = 3;
+                resetCallBitTime = 2;
+                maxTimeDifference = 5;
+                uniquePageAmount = 5;
+                Tracer.AnyTrace("123");
             }
 
             return 0;
@@ -184,6 +196,7 @@ namespace Model_Lab
         {
             try
             {
+
                 StreamReader streamReader;
 
                 if (Environment.OSVersion.Platform.ToString() == "Win32NT")
@@ -193,11 +206,12 @@ namespace Model_Lab
                 }
                 else
                 {
-                    streamReader = new StreamReader(@"/Users/andreymakarov/Downloads/SPOlab2/input.txt");
+                    streamReader = new StreamReader(@"input.txt");
                 }
 
                 while (!streamReader.EndOfStream)
                 {
+                    Tracer.AnyTrace("111");
                     String[] tmp = streamReader.ReadLine().Split(' ');
                     inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
                     inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
@@ -227,7 +241,7 @@ namespace Model_Lab
 
             Console.WriteLine("\n*Трассировка также сохранена в файл trace.txt");
 
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         //Печать заголовка

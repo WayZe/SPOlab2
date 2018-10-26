@@ -41,8 +41,18 @@ namespace Model_Lab
             public void AddPage()
             {
                 bool isPageFault = false;
-                if (Model.inputPagesFifo[0].callTime == Model.cycleNumber)
+                bool isCurrentElement = false;
+                for (int i = 0; i < Model.QFIFO.Count; i++)
                 {
+                    if (Model.QFIFO[i].number == Model.inputPagesFifo[0].number)
+                    {
+                        isCurrentElement = true;
+                    }
+                }
+
+                if (Model.inputPagesFifo[0].callTime == Model.cycleNumber && isCurrentElement)
+                {
+                    
                     Model.QFIFO.Add(new Page(Model.inputPagesFifo[0].number, Model.inputPagesFifo[0].callTime, Model.inputPagesFifo[0].isPageChange));
 
                     if (Model.QFIFO.Count == Model.activePageAmount + 1)
