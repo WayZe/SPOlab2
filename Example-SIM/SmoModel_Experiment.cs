@@ -74,7 +74,6 @@ namespace Model_Lab
             }
             else
             {
-                Tracer.AnyTrace("321");
                 /* Reading input file */
                 ReadFile(@"input.txt");
             }
@@ -113,9 +112,11 @@ namespace Model_Lab
 
             Random rnd = new Random();
             int i = 1;
+            int startTime = 0;
             while (i <= inputPageAmount)
-            { 
-                streamWriter.WriteLine(rnd.Next(0, uniquePageAmount).ToString() + " " + i.ToString() + " " + 0.ToString());
+            {
+                startTime += rnd.Next(1, 10);
+                streamWriter.WriteLine(rnd.Next(0, uniquePageAmount).ToString() + " " + startTime.ToString() + " " + 0.ToString());
                 i++;
             }
             streamWriter.Flush();
@@ -129,7 +130,6 @@ namespace Model_Lab
         /// <returns> Amount of input pages </returns>
         private int ReadFromScreen()
         {
-            Tracer.AnyTrace(Environment.OSVersion.Platform.ToString());
             if (Environment.OSVersion.Platform.ToString() == "Win32NT")
             {
                 inputPageAmount = ReadValueFromScreen("Введите количество обращений \r\n(если желаете оставить базовые настройки введите 0): ");
@@ -163,7 +163,6 @@ namespace Model_Lab
                 resetCallBitTime = 2;
                 maxTimeDifference = 5;
                 uniquePageAmount = 5;
-                Tracer.AnyTrace("123");
             }
 
             return 0;
@@ -202,7 +201,6 @@ namespace Model_Lab
                 if (Environment.OSVersion.Platform.ToString() == "Win32NT")
                 {
                     streamReader = new StreamReader(path);
-
                 }
                 else
                 {
@@ -211,7 +209,6 @@ namespace Model_Lab
 
                 while (!streamReader.EndOfStream)
                 {
-                    Tracer.AnyTrace("111");
                     String[] tmp = streamReader.ReadLine().Split(' ');
                     inputPagesFifo.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));
                     inputPagesWS.Add(new Page(Convert.ToInt32(tmp[0]), Convert.ToInt32(tmp[1]), Convert.ToBoolean(Convert.ToInt32(tmp[2]))));

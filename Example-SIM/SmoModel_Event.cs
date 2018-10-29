@@ -41,6 +41,34 @@ namespace Model_Lab
             public void AddPage()
             {
                 bool isPageFault = false;
+
+                if (Model.inputPagesFifo[0].callTime == Model.cycleNumber)
+                {
+                    if (!SearchPageWithCurrentNumber())
+                    {
+
+                        Model.QFIFO.Add(new Page(Model.inputPagesFifo[0].number, Model.inputPagesFifo[0].callTime, Model.inputPagesFifo[0].isPageChange));
+
+                        if (Model.QFIFO.Count == Model.activePageAmount + 1)
+                        {
+                            Model.pageFaultsAmountFifo++;
+                            Model.QFIFO.RemoveAt(0);
+                            isPageFault = true;
+                        }
+                        else if (Model.QFIFO.Count > Model.activePageAmount + 1)
+                        {
+                            Model.Tracer.AnyTrace("Something went wrong");
+                        }
+                    }
+
+                    PrintTracing(isPageFault);
+
+                    Model.inputPagesFifo.RemoveAt(0);
+                }
+            }
+
+            private bool SearchPageWithCurrentNumber()
+            {
                 bool isCurrentElement = false;
                 for (int i = 0; i < Model.QFIFO.Count; i++)
                 {
@@ -49,28 +77,9 @@ namespace Model_Lab
                         isCurrentElement = true;
                     }
                 }
-
-                if (Model.inputPagesFifo[0].callTime == Model.cycleNumber && isCurrentElement)
-                {
-                    
-                    Model.QFIFO.Add(new Page(Model.inputPagesFifo[0].number, Model.inputPagesFifo[0].callTime, Model.inputPagesFifo[0].isPageChange));
-
-                    if (Model.QFIFO.Count == Model.activePageAmount + 1)
-                    {
-                        Model.pageFaultsAmountFifo++;
-                        Model.QFIFO.RemoveAt(0);
-                        isPageFault = true;
-                    }
-                    else if (Model.QFIFO.Count > Model.activePageAmount + 1)
-                    {
-                        Model.Tracer.AnyTrace("Something went wrong");
-                    }
-
-                    PrintTracing(isPageFault);
-
-                    Model.inputPagesFifo.RemoveAt(0);
-                }
+                return isCurrentElement;
             }
+
 
             public void PrintTracing(bool isPageFault)
             {
@@ -220,25 +229,31 @@ namespace Model_Lab
                     /* Searching first element with [timeDufference] less than [maxTimeDiffernce] */
                     for (int i = k; i < Model.workPagesWS.Count; i++)
                     {
-                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference && !Model.workPagesWS[i].callBit)
+                        if (!Model.workPagesWS[i].callBit)
                         {
-                            worstPageNumber = i;
-                            k = ++i;
-                            break;
+                            if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
+                            {
+                                worstPageNumber = i;
+                                k = ++i;
+                                break;
+                            }
                         }
                     }
 
-
-                    for (int i = k; i < Model.workPagesWS.Count; i++)
+                    if (worstPageNumber == 0)
                     {
-                        if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
+                        for (int i = 0; i < Model.workPagesWS.Count; i++)
                         {
-                            if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
-                                >= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                            //if (Model.workPagesWS[i].timeDifference > Model.maxTimeDifference)
+                            //{
+                            //if (Model.workPagesWS[worstPageNumber].timeDifference * Convert.ToInt32(!Model.workPagesWS[worstPageNumber].callBit)
+                            //    >= Model.workPagesWS[i].timeDifference * Convert.ToInt32(!Model.workPagesWS[i].callBit))
+                            if (Model.workPagesWS[i].callBit != true)
                             {
                                 worstPageNumber = i;
                                 break;
                             }
+                            //}
                         }
                     }
 
@@ -247,6 +262,7 @@ namespace Model_Lab
                     isPageFault = true;
                 }
             }
+
 
             public void PrintTracing(bool isPageFault)
             {
